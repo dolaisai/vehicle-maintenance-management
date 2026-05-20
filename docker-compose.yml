@@ -1,0 +1,192 @@
+---
+version: '3'
+services:
+
+  ## Postgres Docker Compose Config
+  postgres-vehicle:
+    container_name: postgres-vehicle
+    image: postgres
+    environment:
+      POSTGRES_DB: vehicle-service
+      POSTGRES_USER: vehicle
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-vehicle:/data/postgres
+    ports:
+      - "5431:5432"
+    restart: unless-stopped
+
+  postgres-alerts:
+    container_name: postgres-alerts
+    image: postgres
+    environment:
+      POSTGRES_DB: alerts-service
+      POSTGRES_USER: alerts
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-alerts:/data/postgres
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+
+  postgres-maintenance:
+    container_name: postgres-maintenance
+    image: postgres
+    environment:
+      POSTGRES_DB: maintenance-service
+      POSTGRES_USER: maintenance
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-maintenance:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  #kafka broker config
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: broker
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  ## Zipkin
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
+  ## Eureka Server
+  discovery-server: #name within this compose file
+    image: dolaisai/discovery-server:latest   #created image from docker hub NOTE: 'latest' is the TAG name in docker hub
+    container_name: discovery-server          #name of the container within docker
+    pull_policy: always                       #everytime we try to spin up, it will pull the image from docker hub
+    ports:
+      - "8761:8761"                           #default port of eureka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker         #use the docker profile applicatoin.properties file
+      - EUREKA_USERNAME=eureka
+      - EUREKA_PASSWORD=password
+    depends_on:
+      - zipkin                                #make sure zipkin is running before trying to start discovery server
+
+  ## API Gateway
+  api-gateway:
+    image: dolaisai/api-gateway:latest
+    container_name: api-gateway
+    pull_policy: always
+    ports:
+      - "8080:8080"                           #use 8181 in docker bc 8080 is being used by keycloak already.
+    expose:
+      - "8181"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+    depends_on:
+      - zipkin
+      - discovery-server
+
+  ## Vehicle-Service Docker Compose Config
+  vehicle-service:
+    container_name: vehicle-service
+    image: dolaisai/vehicle-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres-vehicle
+      - zipkin
+      - discovery-server
+      - api-gateway
+
+  ## Maintenance-Service Docker Compose Config
+  maintenance-service:
+    container_name: maintenance-service
+    image: dolaisai/maintenance-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - broker
+      - postgres-maintenance
+      - zipkin
+      - discovery-server
+      - api-gateway
+
+  ## Alerts-Service Docker Compose Config
+  alerts-service:
+    container_name: alerts-service
+    image: dolaisai/alerts-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - broker
+      - postgres-alerts
+      - zipkin
+      - discovery-server
+      - api-gateway
+
+  ## Rule-Evaluation-Service Docker Compose Config
+  rule-evaluation-service:
+    container_name: rule-evaluation-service
+    image: dolaisai/rule-evaluation-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - broker
+      - zipkin
+      - discovery-server
+      - api-gateway
+
+  ## Prometheus
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - alerts-service
+      - maintenance-service
+      - rule-evaluation-service
+      - vehicle-service
+      - api-gateway
+      - discovery-server
+
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
