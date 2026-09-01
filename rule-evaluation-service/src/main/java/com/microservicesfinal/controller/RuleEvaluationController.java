@@ -22,7 +22,7 @@ public class RuleEvaluationController {
              ruleEvaluationService.syncOne(vehicleId);
     }
 
-    //sync all vehicles that live withing the DB
+    //start sync process for ALL vehicles saved within the system.
     @GetMapping
     public void syncAll(){
         ruleEvaluationService.syncAll();
