@@ -16,7 +16,7 @@ public class RuleEvaluationController {
 
     private final RuleEvaluationService ruleEvaluationService;
 
-    //start sync process for provided vehicleId
+    //sync vehicle with specific ID passed in with URI
     @GetMapping("/{vehicleId}")
     public void syneOne(@PathVariable Integer vehicleId){
              ruleEvaluationService.syncOne(vehicleId);
