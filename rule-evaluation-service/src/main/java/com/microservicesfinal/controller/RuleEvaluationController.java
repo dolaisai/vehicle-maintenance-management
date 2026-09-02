@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class RuleEvaluationController {
 
     private final RuleEvaluationService ruleEvaluationService;
-  
-   //base 
+
+    //conf 2
     @GetMapping("/{vehicleId}")
     public void syneOne(@PathVariable Integer vehicleId){
              ruleEvaluationService.syncOne(vehicleId);
     }
 
-    //conf 1
+    //conf 2
     @GetMapping
     public void syncAll(){
         ruleEvaluationService.syncAll();
