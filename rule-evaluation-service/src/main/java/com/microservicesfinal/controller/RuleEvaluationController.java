@@ -16,13 +16,13 @@ public class RuleEvaluationController {
 
     private final RuleEvaluationService ruleEvaluationService;
 
-    //test branch 2 changes
+    //base comment
     @GetMapping("/{vehicleId}")
     public void syneOne(@PathVariable Integer vehicleId){
              ruleEvaluationService.syncOne(vehicleId);
     }
 
-    //test branch 2 changes
+    //base comment
     @GetMapping
     public void syncAll(){
         ruleEvaluationService.syncAll();
