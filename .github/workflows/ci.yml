@@ -4,9 +4,9 @@ name: CI
 #Event Triggers
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 #
 jobs:
@@ -26,5 +26,5 @@ jobs:
           java-version: '21'
           cache: maven
 
-        - name: Build and test
-          run: mvn --batch-mode verify
+      - name: Build and test
+        run: mvn --batch-mode verify
