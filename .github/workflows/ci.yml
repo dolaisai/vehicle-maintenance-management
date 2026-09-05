@@ -1,0 +1,30 @@
+#Workflow
+name: CI
+
+#Event Triggers
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+#
+jobs:
+  build:
+    #Setup Runner
+    runs-on: ubuntu-latest
+
+    #
+    steps:
+      - name: Checkout repository #
+      - uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+        - name: Build and test
+          run: mvn --batch-mode verify
