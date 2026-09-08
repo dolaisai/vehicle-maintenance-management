@@ -1,24 +1,39 @@
-#Workflow
+# ---------- Workflow ----------
 name: CI
 
-#Event Triggers
+# ---------- Event Triggers ----------
 on:
   push:
-    branches: [ master ]
+    branches: [ master ]      # commits get pushed directly to master
   pull_request:
-    branches: [ master ]
+    branches: [ master ]      # a PR is opened or updated that TARGETS master.
+                              # This one runs against the PR's code BEFORE the
+                              # merge - that is what makes gating possible.
 
-#
+# ---------- Jobs ----------
+# A workflow has one or more jobs. Separate jobs run in parallel unless told
+# otherwise; steps inside a single job run in order, top to bottom.
 jobs:
-  build:
-    #Setup Runner (throw away instance)
+  build:                      # "build" is just a name I picked for this job
+    # The runner: a fresh, throwaway virtual machine GitHub hands us.
+    # It starts with NOTHING of mine on it - no repo, no JDK, no ~/.m2 cache.
+    # That is the entire reason the first two steps exist.
     runs-on: ubuntu-latest
 
-    #
+    # Steps run in order. If one fails, the remaining steps are skipped and
+    # the whole job goes red.
     steps:
+      # Copy my repository onto the runner, at the exact commit being tested.
+      # Without this the runner has no code to build.
+      # "uses" means: run an action someone else already wrote.
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      # Install a JDK on the runner.
+      #   distribution: which vendor's build of Java (temurin = Eclipse Adoptium)
+      #   java-version: 17, matching maven.compiler.source in my pom
+      #   cache: maven  -> saves ~/.m2 between runs so Maven does not
+      #                    re-download every dependency on every build
       - name: Set up Java JDK Runtime
         uses: actions/setup-java@v6
         with:
@@ -26,8 +41,14 @@ jobs:
           java-version: '17'
           cache: maven
 
+      # Compile main AND test sources, without running any tests.
+      # Any COMPILE error fails here, so it can never be mistaken for a
+      # test failure in the next step.
+      # "run": execute this as a shell command on the runner.
       - name: Compile
         run: mvn -B -DskipTests test-compile
 
+      # Full build, tests included. A failure here means an assertion failed,
+      # not that the code is broken
       - name: Test
         run: mvn -B verify
