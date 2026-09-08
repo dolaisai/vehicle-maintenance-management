@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up Java 17
+      - name: Set up Java JDK Runtime
         uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -27,6 +27,7 @@ jobs:
           cache: maven
 
       - name: Compile
-        run: mvn --batch-mode verify
+        run: mvn -B -DskipTests test-compile
 
-#      - name: Test
+      - name: Test
+        run: mvn -B verify
