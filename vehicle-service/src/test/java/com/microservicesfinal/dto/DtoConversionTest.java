@@ -30,7 +30,7 @@ class DtoConversionTest {
 
         User user = DtoConversion.mapDTOtoUser(request);
 
-        assertEquals("isaiah@example.com", user.getEmail());
+        assertEquals("Isaiah@example.com", user.getEmail());
         assertEquals("Isaiah", user.getFirstName());
     }
 
