@@ -20,7 +20,7 @@ class DtoConversionTest {
 
     @Test
     @DisplayName("mapDTOtoUser trims and lowercases the email")
-    //test to see if email normalizer works as intended.
+    //test to see if email normalizer works as intended. Should make any email all lowercase.
     void mapDTOtoUserNormalizesEmail() {
         CreateUserRequest request = CreateUserRequest.builder()
                 .firstName("Isaiah")
