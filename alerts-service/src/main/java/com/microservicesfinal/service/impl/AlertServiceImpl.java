@@ -97,7 +97,7 @@ public class AlertServiceImpl implements AlertService {
             );
         }
         catch(Exception ex){
-            log.error("Failed to send SMS notification: {}", ex.getMessage());
+            log.error("Failed to send maintenance alert email: {}", ex.getMessage());
         }
 
         return response;
