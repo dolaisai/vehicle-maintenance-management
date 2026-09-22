@@ -1,21 +1,20 @@
 ---
-version: '3'
 services:
 
   ## Postgres Docker Compose Config
-  postgres-vehicle:
-    container_name: postgres-vehicle
-    image: postgres
-    environment:
-      POSTGRES_DB: vehicle-service
-      POSTGRES_USER: vehicle
-      POSTGRES_PASSWORD: password
-      PGDATA: /data/postgres
-    volumes:
+  postgres-vehicle:                           # name within this compose file
+    container_name: postgres-vehicle          # container name
+    image: postgres                           # base image
+    environment:                              # environment info
+      POSTGRES_DB: vehicle-service            # database name
+      POSTGRES_USER: vehicle                  # username
+      POSTGRES_PASSWORD: password             # password
+      PGDATA: /data/postgres                  #
+    volumes:                                   # persisted data saved locally
       - ./postgres-vehicle:/data/postgres
-    ports:
-      - "5431:5432"
-    restart: unless-stopped
+    ports:                                    # left is exposed port to connect to the container.
+      - "5431:5432"                           # right is the port that docker will run postgress on within the container
+    restart: unless-stopped                   # only restart container if stopped.
 
   postgres-alerts:
     container_name: postgres-alerts
@@ -76,19 +75,19 @@ services:
     ports:
       - "9411:9411"
 
-  ## Eureka Server
-  discovery-server: #name within this compose file
-    image: dolaisai/discovery-server:latest   #created image from docker hub NOTE: 'latest' is the TAG name in docker hub
-    container_name: discovery-server          #name of the container within docker
-    pull_policy: always                       #everytime we try to spin up, it will pull the image from docker hub
+  ## Netflix Eureka Server
+  discovery-server:                           # name within this compose file
+    image: dolaisai/discovery-server:latest   # created image from docker hub NOTE: 'latest' is the TAG name in docker hub NOT a reserved keyword!
+    container_name: discovery-server          # name of the container within docker
+    pull_policy: always                       # everytime we try to spin up, it will pull the image from docker hub
     ports:
-      - "8761:8761"                           #default port of eureka
+      - "8761:8761"                           # default port of Netflix eureka server left is exposed port, right is port eureka is running on within container.
     environment:
-      - SPRING_PROFILES_ACTIVE=docker         #use the docker profile applicatoin.properties file
-      - EUREKA_USERNAME=eureka
-      - EUREKA_PASSWORD=password
+      - SPRING_PROFILES_ACTIVE=docker         # use the docker profile application.properties file
+      - EUREKA_USERNAME=eureka                # Eureka username
+      - EUREKA_PASSWORD=password              # Eureka password
     depends_on:
-      - zipkin                                #make sure zipkin is running before trying to start discovery server
+      - zipkin                                # make sure zipkin is running before trying to start discovery server
 
   ## API Gateway
   api-gateway:

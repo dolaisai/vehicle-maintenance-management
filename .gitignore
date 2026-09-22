@@ -37,3 +37,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Docker bind-mount runtime data (not source) ###
+postgres-vehicle/
+postgres-alerts/
+postgres-maintenance/
+grafana/
