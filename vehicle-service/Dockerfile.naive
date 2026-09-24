@@ -1,0 +1,10 @@
+# Deliberately bad single-stage build. Kept for the demo's "before" image.
+# Build from the repo root so the parent pom is in the context:
+#   docker build -t vehicle-service:naive -f ./vehicle-service/Dockerfile.naive .
+
+FROM maven:3.9-eclipse-temurin-17
+WORKDIR /app
+COPY . .
+RUN mvn -f vehicle-service/pom.xml clean package
+EXPOSE 8080
+CMD ["java", "-jar", "/app/vehicle-service/target/vehicle-service-1.0-SNAPSHOT.jar"]

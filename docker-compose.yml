@@ -108,8 +108,11 @@ services:
   ## Vehicle-Service Docker Compose Config
   vehicle-service:
     container_name: vehicle-service
-    image: dolaisai/vehicle-service:latest
-    pull_policy: always
+    #image: dolaisai/vehicle-service:latest
+    #pull_policy: always
+    build:
+      context: .
+      dockerfile: vehicle-service/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
