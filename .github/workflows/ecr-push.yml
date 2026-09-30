@@ -1,0 +1,35 @@
+name: ECR Push
+
+on:
+  push:
+    branches: [ spike/scrum-41-ecr ]         # must match the branch in the role's trust policy
+
+# The runner asks GitHub for an OIDC token. Without this, the AWS login step fails.
+permissions:
+  id-token: write
+  contents: read              # needed by checkout once you set any permission
+
+jobs:
+  push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6   # check the README for the current major version
+        with:
+          role-to-assume: arn:aws:iam::997498698459:role/github-actions-ecr-push   # the role's ARN, from the top of its IAM page
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        id: login               # lets later steps read this step's outputs
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.login.outputs.registry }}
+          TAG: ${{ github.sha }}              # the commit SHA, from the github context
+        run: |
+          docker build -t $REGISTRY/vehicle-service:$TAG -f ./vehicle-service/Dockerfile .
+          docker push $REGISTRY/vehicle-service:$TAG
