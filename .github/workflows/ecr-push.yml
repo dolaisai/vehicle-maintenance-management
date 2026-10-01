@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6   # check the README for the current major version
+        uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::997498698459:role/github-actions-ecr-push   # the role's ARN, from the top of its IAM page
+          role-to-assume: arn:aws:iam::997498698459:role/github-actions-ecr-push
           aws-region: us-east-1
 
       - name: Log in to Amazon ECR
-        id: login               # lets later steps read this step's outputs
+        id: login
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push image
