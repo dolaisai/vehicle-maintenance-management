@@ -43,3 +43,6 @@ postgres-vehicle/
 postgres-alerts/
 postgres-maintenance/
 grafana/
+
+### personal dir for notes about the project ###
+personal/
